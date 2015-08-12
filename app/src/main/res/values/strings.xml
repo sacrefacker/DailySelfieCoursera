@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">DailySelfieAsm</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_take_photo">Take photo</string>
+    <string name="footer_text">Take photo</string>
+    <string name="photo_description">This is the photo</string>
+</resources>
