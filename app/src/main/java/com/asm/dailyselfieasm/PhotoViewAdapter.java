@@ -46,6 +46,7 @@ public class PhotoViewAdapter extends BaseAdapter {
         PhotoRecord curr = list.get(position);
 
         if (null == convertView) {
+
             holder = new ViewHolder();
             newView = inflater.inflate(R.layout.photo_view, parent, false);
             holder.photo = (ImageView) newView.findViewById(R.id.photo_img);
