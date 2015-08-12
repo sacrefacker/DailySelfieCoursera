@@ -30,6 +30,9 @@ public class MainActivity extends ListActivity {
         //setContentView(R.layout.activity_main);
 
         ListView photoListView = getListView();
+
+        // TODO: make the app save data
+
         photoListView.setId(android.R.id.list); // ??
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
 
@@ -37,8 +40,7 @@ public class MainActivity extends ListActivity {
             @Override
             public void onClick(View v) {
 
-                // TODO: make the app open the camera and receive photo
-                // kind of done
+                // done TODO: make the app open the camera and receive photo
 
                 showToast("Go to camera from footer");
                 takePhotoButton();
