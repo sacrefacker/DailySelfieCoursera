@@ -1,5 +1,6 @@
 package com.asm.dailyselfieasm;
 
+import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -21,6 +22,7 @@ public class MainActivity extends ListActivity {
     private static final String TAG = "Dayly-Selfie-Asm";
     private static final int PHOTO_REQUEST = 1234;
     private PhotoViewAdapter mAdapter;
+    private ActionBar actionBar;
 
     // TODO: add alarm that reminds to take a selfie, pressing it opens the app
 
@@ -28,6 +30,8 @@ public class MainActivity extends ListActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
+
+        actionBar.show();
 
         ListView photoListView = getListView();
 
