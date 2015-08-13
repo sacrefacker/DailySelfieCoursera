@@ -49,7 +49,7 @@ public class PhotoViewAdapter extends BaseAdapter {
 
             holder = new ViewHolder();
             newView = inflater.inflate(R.layout.photo_view, parent, false);
-            holder.photo = (ImageView) newView.findViewById(R.id.photo_img);
+            holder.preview = (ImageView) newView.findViewById(R.id.photo_img);
             holder.date = (TextView) newView.findViewById(R.id.photo_date);
             newView.setTag(holder);
 
@@ -57,7 +57,7 @@ public class PhotoViewAdapter extends BaseAdapter {
             holder = (ViewHolder) newView.getTag();
         }
 
-        holder.photo.setImageBitmap(curr.getPhoto());
+        holder.preview.setImageBitmap(curr.getPreview());
         holder.date.setText("Country: " + curr.getDate());
 
         return newView;
@@ -66,7 +66,7 @@ public class PhotoViewAdapter extends BaseAdapter {
 
     static class ViewHolder {
 
-        ImageView photo;
+        ImageView preview;
         TextView date;
 
     }

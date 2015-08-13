@@ -22,7 +22,6 @@ public class MainActivity extends ListActivity {
     private static final String TAG = "Dayly-Selfie-Asm";
     private static final int PHOTO_REQUEST = 1234;
     private PhotoViewAdapter mAdapter;
-    private ActionBar actionBar;
 
     // TODO: add alarm that reminds to take a selfie, pressing it opens the app
 
@@ -31,14 +30,14 @@ public class MainActivity extends ListActivity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
 
-        actionBar.show();
-
         ListView photoListView = getListView();
 
         // TODO: make the app save data
 
         photoListView.setId(android.R.id.list); // ??
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
+
+        // TODO: swipe to remove entry and cancel button
 
         footerView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,7 +99,11 @@ public class MainActivity extends ListActivity {
 
     @Override
     public void onBackPressed() {
-        openOptionsMenu();
+
+        // TODO: get exit confirmation
+        
+        super.onBackPressed();
+
     }
 
     @Override
@@ -115,6 +118,9 @@ public class MainActivity extends ListActivity {
                 takePhotoButton();
                 return true;
             case R.id.action_clear_list:
+
+                // TODO: get clear list confirmation
+
                 Log.i(TAG, "The list has been cleared");
                 mAdapter.clearList();
                 return true;
