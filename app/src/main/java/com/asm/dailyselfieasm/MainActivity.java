@@ -12,7 +12,6 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -45,7 +44,7 @@ public class MainActivity extends ListActivity {
 
                 // done TODO: make the app open the camera and receive photo
 
-                showToast("Go to camera from footer");
+                Log.i(TAG, "Go to camera from footer");
                 takePhotoButton();
 
             }
@@ -55,27 +54,8 @@ public class MainActivity extends ListActivity {
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
-        retrievePhotosFromMemory();
-    }
-
-    public void retrievePhotosFromMemory() {
-
-        // done TODO: read photos from memory and add them to the list
-
-        File directory = getApplicationContext().getFilesDir();
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            for (File file : files) {
-                Log.i(TAG, "found a file");
-                String filename = file.getName();
-                Bitmap photo = DiskAdapter.getInstance().
-                        openPhoto(getApplicationContext(), filename);
-                if (null != photo) {
-                    mAdapter.add(new PhotoRecord(filename, photo));
-                    Log.i(TAG, "added a photo from file");
-                }
-            }
-        }
+        mAdapter.setListTo(DiskAdapter.getInstance().
+                retrievePhotosFromMemory(getApplicationContext()));
         showToast("Done loading files");
 
     }
@@ -148,7 +128,7 @@ public class MainActivity extends ListActivity {
 
         switch (item.getItemId()) {
             case R.id.action_take_photo:
-                showToast("Go to camera from menu");
+                Log.i(TAG, "Go to camera from menu");
                 takePhotoButton();
                 return true;
             case R.id.action_clear_list:
@@ -156,8 +136,9 @@ public class MainActivity extends ListActivity {
                 // TODO: get clear list confirmation
                 //
 
-                clearPhotos();
-                Log.i(TAG, "The list has been cleared");
+                mAdapter.clearList();
+                DiskAdapter.getInstance().removeAllPhotos(getApplicationContext());
+                showToast("All photos were removed");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -171,19 +152,6 @@ public class MainActivity extends ListActivity {
     private void takePhotoButton() {
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
-    }
-
-    private void clearPhotos() {
-
-        // TODO: delete photos from memory
-        //
-
-        mAdapter.clearList();
-
-    }
-
-    private void exitRequested() {
-        super.onBackPressed();
     }
 
 }

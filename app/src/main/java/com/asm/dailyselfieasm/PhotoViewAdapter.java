@@ -65,10 +65,8 @@ public class PhotoViewAdapter extends BaseAdapter {
 
 
     static class ViewHolder {
-
         ImageView preview;
         TextView date;
-
     }
 
     public void add(PhotoRecord listItem) {
@@ -80,4 +78,11 @@ public class PhotoViewAdapter extends BaseAdapter {
         list.clear();
         this.notifyDataSetChanged();
     }
+
+    public void setListTo(ArrayList<PhotoRecord> setList) {
+        list.clear();
+        list = setList;
+        this.notifyDataSetChanged();
+    }
+
 }

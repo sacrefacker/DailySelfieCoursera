@@ -9,8 +9,8 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class PhotoActivity extends Activity {
-    private static final String TAG = "DailySelfieAsm";
+    public class PhotoActivity extends Activity {
+        private static final String TAG = "DailySelfieAsm";
 
     ImageView photoView;
 
@@ -34,6 +34,7 @@ public class PhotoActivity extends Activity {
         Log.i(TAG, "the photo is set");
 
         // TODO: deleting photo from here
+        // singleton / intent for result ?
         //
 
     }
