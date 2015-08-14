@@ -6,5 +6,4 @@
     <string name="footer_text">Take photo</string>
     <string name="photo_description">This is the photo</string>
     <string name="action_clear_list">Clear list</string>
-    <string name="action_quit">Quit</string>
 </resources>

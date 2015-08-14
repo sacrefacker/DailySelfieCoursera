@@ -1,6 +1,5 @@
 package com.asm.dailyselfieasm;
 
-import android.app.ActionBar;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -20,10 +19,13 @@ import java.util.Date;
 public class MainActivity extends ListActivity {
 
     private static final String TAG = "Dayly-Selfie-Asm";
-    private static final int PHOTO_REQUEST = 1234;
+    private static final int PHOTO_REQUEST = 123;
     private PhotoViewAdapter mAdapter;
 
+    public static final String EXTRA_BITMAP = "ExtraBitmap";
+
     // TODO: add alarm that reminds to take a selfie, pressing it opens the app
+    //
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,11 +35,13 @@ public class MainActivity extends ListActivity {
         ListView photoListView = getListView();
 
         // TODO: make the app save data
+        //
 
         photoListView.setId(android.R.id.list); // ??
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
 
         // TODO: swipe to remove entry and cancel button
+        //
 
         footerView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -53,10 +57,17 @@ public class MainActivity extends ListActivity {
 
         photoListView.addFooterView(footerView);
         mAdapter = new PhotoViewAdapter(getApplicationContext());
-
-        // TODO: open the photo when clicking on an item in the list view
-
         setListAdapter(mAdapter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     private void showToast(String text) {
@@ -64,6 +75,10 @@ public class MainActivity extends ListActivity {
     }
 
     private void takePhotoButton() {
+
+        // TODO: camera emulation
+        // ??
+
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
     }
@@ -73,8 +88,7 @@ public class MainActivity extends ListActivity {
         if (requestCode == PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
-                Bitmap photo = (Bitmap) extras.get("data");
-                mAdapter.add(new PhotoRecord(DateFormat.getDateTimeInstance().format(new Date()), photo));
+                addSelfie((Bitmap) extras.get("data"));
             }
             else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(getApplicationContext(), "You didn't take a photo",
@@ -87,23 +101,33 @@ public class MainActivity extends ListActivity {
         }
     }
 
+    private void addSelfie(Bitmap picture) {
+        mAdapter.add(new PhotoRecord(DateFormat.getDateTimeInstance().format(new Date()), picture));
+    }
+
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+
+        // TODO: open the photo when clicking on an item in the list view
+
+        Intent openPhotoIntent = new Intent();
+        openPhotoIntent.setClass(getApplicationContext(), com.asm.dailyselfieasm.PhotoActivity.class);
+        Bitmap photo = mAdapter.getItemPhoto(position);
+        openPhotoIntent.putExtra(EXTRA_BITMAP, photo);
+        startActivity(openPhotoIntent);
+
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         //TODO: make the action bar appear on the top
+        //
 
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
-    }
-
-    @Override
-    public void onBackPressed() {
-
-        // TODO: get exit confirmation
-        
-        super.onBackPressed();
-
     }
 
     @Override
@@ -120,12 +144,10 @@ public class MainActivity extends ListActivity {
             case R.id.action_clear_list:
 
                 // TODO: get clear list confirmation
+                //
 
                 Log.i(TAG, "The list has been cleared");
                 mAdapter.clearList();
-                return true;
-            case R.id.action_quit:
-                exitRequested();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

@@ -1,6 +1,7 @@
 package com.asm.dailyselfieasm;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +32,8 @@ public class PhotoViewAdapter extends BaseAdapter {
     public Object getItem(int position) {
         return list.get(position);
     }
+
+    public Bitmap getItemPhoto(int position) { return list.get(position).getPhoto(); }
 
     @Override
     public long getItemId(int position) {

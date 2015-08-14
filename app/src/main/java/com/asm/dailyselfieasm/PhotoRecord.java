@@ -48,6 +48,7 @@ public class PhotoRecord {
     }
 
     // TODO: make actual previews
+    //
 
     private Bitmap getPreview(Bitmap photo) {
         Bitmap preview = photo;
