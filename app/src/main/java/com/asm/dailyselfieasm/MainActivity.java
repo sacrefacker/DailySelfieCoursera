@@ -1,6 +1,9 @@
 package com.asm.dailyselfieasm;
 
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -11,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.app.AlertDialog;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -22,6 +26,7 @@ public class MainActivity extends ListActivity {
     private PhotoViewAdapter mAdapter;
 
     public static final String EXTRA_BITMAP = "ExtraBitmap";
+    public static final String DATA_FROM_CAMERA = "data";
 
     // TODO: add alarm that reminds to take a selfie, pressing it opens the app
     //
@@ -56,7 +61,7 @@ public class MainActivity extends ListActivity {
 
         mAdapter.setListTo(DiskAdapter.getInstance().
                 retrievePhotosFromMemory(getApplicationContext()));
-        showToast("Done loading files");
+        showToast(R.string.done_loading_files);
 
     }
 
@@ -94,17 +99,15 @@ public class MainActivity extends ListActivity {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
                 String date = DateFormat.getDateTimeInstance().format(new Date());
-                Bitmap photo = (Bitmap) extras.get("data");
+                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
                 mAdapter.add(new PhotoRecord(date, photo));
                 DiskAdapter.getInstance().savePhoto(getApplicationContext(), date, photo);
             }
             else if (resultCode == RESULT_CANCELED) {
-                Toast.makeText(getApplicationContext(), "You didn't take a photo",
-                        Toast.LENGTH_SHORT).show();
+                showToast(R.string.photo_not_taken);
             }
             else {
-                Toast.makeText(getApplicationContext(), "Photo capture failed",
-                        Toast.LENGTH_SHORT).show();
+                showToast(R.string.photo_failed);
             }
         }
     }
@@ -112,7 +115,7 @@ public class MainActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
-        //TODO: make the action bar appear on the top
+        // TODO: make the action bar appear on the top
         //
 
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -133,20 +136,41 @@ public class MainActivity extends ListActivity {
                 return true;
             case R.id.action_clear_list:
 
-                // TODO: get clear list confirmation
-                //
+                // done TODO: get clear list confirmation
 
-                mAdapter.clearList();
-                DiskAdapter.getInstance().removeAllPhotos(getApplicationContext());
-                showToast("All photos were removed");
+                removeAllPhotosDialog();
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void showToast(String text) {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+    private void removeAllPhotosDialog() {
+
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle(R.string.dialog_title)
+                .setMessage(R.string.dialog_message)
+                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mAdapter.clearList();
+                        DiskAdapter.getInstance().removeAllPhotos(getApplicationContext());
+                        showToast(R.string.all_photos_removed);
+                    }
+                })
+                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        showToast(R.string.remove_cancel);
+                    }
+                })
+                .show();
+
+    }
+
+    private void showToast(int stringResource) {
+        Toast.makeText(getApplicationContext(), stringResource, Toast.LENGTH_SHORT).show();
     }
 
     private void takePhotoButton() {
