@@ -12,13 +12,13 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 
 
 public class MainActivity extends ListActivity {
-
-    private static final String TAG = "Dayly-Selfie-Asm";
+    private static final String TAG = "DailySelfieAsm";
     private static final int PHOTO_REQUEST = 123;
     private PhotoViewAdapter mAdapter;
 
@@ -33,10 +33,6 @@ public class MainActivity extends ListActivity {
         //setContentView(R.layout.activity_main);
 
         ListView photoListView = getListView();
-
-        // TODO: make the app save data
-        //
-
         photoListView.setId(android.R.id.list); // ??
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
 
@@ -58,7 +54,34 @@ public class MainActivity extends ListActivity {
         photoListView.addFooterView(footerView);
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
+
+        retrievePhotosFromMemory();
     }
+
+    public void retrievePhotosFromMemory() {
+
+        // done TODO: read photos from memory and add them to the list
+
+        File directory = getApplicationContext().getFilesDir();
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            for (File file : files) {
+                Log.i(TAG, "found a file");
+                String filename = file.getName();
+                Bitmap photo = DiskAdapter.getInstance().
+                        openPhoto(getApplicationContext(), filename);
+                if (null != photo) {
+                    mAdapter.add(new PhotoRecord(filename, photo));
+                    Log.i(TAG, "added a photo from file");
+                }
+            }
+        }
+        showToast("Done loading files");
+
+    }
+
+    // TODO: landscape and portrait orientations
+    //
 
     @Override
     protected void onResume() {
@@ -70,17 +93,19 @@ public class MainActivity extends ListActivity {
         super.onPause();
     }
 
-    private void showToast(String text) {
-        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
-    }
+    @Override
+    protected void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
 
-    private void takePhotoButton() {
+        // done TODO: open the photo when clicking on an item in the list view
 
-        // TODO: camera emulation
-        // ??
+        Intent showPhotoIntent = new Intent();
+        showPhotoIntent.setClass(getApplicationContext(), com.asm.dailyselfieasm.
+                PhotoActivity.class);
+        String filename = ((PhotoRecord)mAdapter.getItem(position)).getDate();
+        showPhotoIntent.putExtra(EXTRA_BITMAP, filename);
+        startActivity(showPhotoIntent);
 
-        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
     }
 
     @Override
@@ -88,7 +113,10 @@ public class MainActivity extends ListActivity {
         if (requestCode == PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
                 Bundle extras = data.getExtras();
-                addSelfie((Bitmap) extras.get("data"));
+                String date = DateFormat.getDateTimeInstance().format(new Date());
+                Bitmap photo = (Bitmap) extras.get("data");
+                mAdapter.add(new PhotoRecord(date, photo));
+                DiskAdapter.getInstance().savePhoto(getApplicationContext(), date, photo);
             }
             else if (resultCode == RESULT_CANCELED) {
                 Toast.makeText(getApplicationContext(), "You didn't take a photo",
@@ -99,24 +127,6 @@ public class MainActivity extends ListActivity {
                         Toast.LENGTH_SHORT).show();
             }
         }
-    }
-
-    private void addSelfie(Bitmap picture) {
-        mAdapter.add(new PhotoRecord(DateFormat.getDateTimeInstance().format(new Date()), picture));
-    }
-
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-
-        // TODO: open the photo when clicking on an item in the list view
-
-        Intent openPhotoIntent = new Intent();
-        openPhotoIntent.setClass(getApplicationContext(), com.asm.dailyselfieasm.PhotoActivity.class);
-        Bitmap photo = mAdapter.getItemPhoto(position);
-        openPhotoIntent.putExtra(EXTRA_BITMAP, photo);
-        startActivity(openPhotoIntent);
-
     }
 
     @Override
@@ -146,12 +156,30 @@ public class MainActivity extends ListActivity {
                 // TODO: get clear list confirmation
                 //
 
+                clearPhotos();
                 Log.i(TAG, "The list has been cleared");
-                mAdapter.clearList();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void showToast(String text) {
+        Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+    }
+
+    private void takePhotoButton() {
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
+    }
+
+    private void clearPhotos() {
+
+        // TODO: delete photos from memory
+        //
+
+        mAdapter.clearList();
+
     }
 
     private void exitRequested() {

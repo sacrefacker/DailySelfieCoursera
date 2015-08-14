@@ -13,7 +13,6 @@ import java.util.ArrayList;
 
 
 public class PhotoViewAdapter extends BaseAdapter {
-
     private ArrayList<PhotoRecord> list = new ArrayList<>();
     private static LayoutInflater inflater = null;
     private Context mContext;
@@ -32,8 +31,6 @@ public class PhotoViewAdapter extends BaseAdapter {
     public Object getItem(int position) {
         return list.get(position);
     }
-
-    public Bitmap getItemPhoto(int position) { return list.get(position).getPhoto(); }
 
     @Override
     public long getItemId(int position) {
@@ -61,7 +58,7 @@ public class PhotoViewAdapter extends BaseAdapter {
         }
 
         holder.preview.setImageBitmap(curr.getPreview());
-        holder.date.setText("Country: " + curr.getDate());
+        holder.date.setText("date: " + curr.getDate());
 
         return newView;
     }
