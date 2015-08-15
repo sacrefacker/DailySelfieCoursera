@@ -54,7 +54,7 @@ public class DiskAdapter {
         new SaveImageThread(context, filename, image, parent).start();
     }
 
-    private void saveImageBack(Context context, String text, ToastCallback parent) {
+    private void saveImageBack(String text, ToastCallback parent) {
         parent.toastCallback(text);
     }
 
@@ -155,7 +155,7 @@ public class DiskAdapter {
                 ex.printStackTrace();
             }
 
-            saveImageBack(context, context.getString(R.string.saved_to) + " " + context.
+            saveImageBack(context.getString(R.string.saved_to) + " " + context.
                     getFilesDir().toString() + "/" + filename, parent);
 
         }

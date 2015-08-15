@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.MediaStore;
@@ -19,6 +20,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 import android.app.AlertDialog;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
 
@@ -33,8 +35,8 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     // Alarm Section
     private static final int ALARM_DELAY = 20000;
-    public static final String NOTE_TITLE = "Schdeduled notification";
-    public static final String NOTE_TEXT = "Notification with delay";
+    public static final String NOTE_TITLE = "Time for a selfie";
+    public static final String NOTE_TEXT = "This reminds you to take a selfie once in a while";
     public static final int NOTE_ID = 12345;
 
     private PendingIntent alarmPending;
@@ -132,26 +134,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PHOTO_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Bundle extras = data.getExtras();
-                String date = DateFormat.getDateTimeInstance().format(new Date());
-                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
-                mAdapter.add(new PhotoRecord(date, photo));
-                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
-                        MainActivity.this);
-            }
-            else if (resultCode == RESULT_CANCELED) {
-                showToast(R.string.photo_not_taken);
-            }
-            else {
-                showToast(R.string.photo_failed);
-            }
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
         // TODO: make the action bar appear on the top
@@ -218,7 +200,31 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         //
 
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(
+                new File(getApplicationContext().getFilesDir().toString() + File.separator
+                        + DateFormat.getDateTimeInstance().format(new Date()))) + ".jpg");
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PHOTO_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                /*Bundle extras = data.getExtras();
+                String date = DateFormat.getDateTimeInstance().format(new Date());
+                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
+                mAdapter.add(new PhotoRecord(date, photo));*/
+
+                /*DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
+                        MainActivity.this);*/
+            }
+            else if (resultCode == RESULT_CANCELED) {
+                showToast(R.string.photo_not_taken);
+            }
+            else {
+                showToast(R.string.photo_failed);
+            }
+        }
     }
 
     @Override
