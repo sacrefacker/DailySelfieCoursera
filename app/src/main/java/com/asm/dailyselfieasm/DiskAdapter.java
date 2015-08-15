@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,8 +16,7 @@ public class DiskAdapter {
     // Maybe just make three separate thread classes ?
 
     private static final String TAG = "DailySelfieAsm";
-    private static final int DELAY_SHORT = 500;
-    private static final int DELAY_LONG = 2000;
+    private static final int DELAY = 1000;
 
     private static DiskAdapter instance;
 
@@ -44,24 +42,20 @@ public class DiskAdapter {
 
     // done TODO: async threading
 
-    public void loadAllImages(Context context, SetImageCallback parent) {
-        new LoadAllImagesThread(context, parent).start();
+    public void loadAllImages(Context context, SetImageCallback parent, ToastCallback toastParent) {
+        new LoadAllImagesThread(context, parent, toastParent).start();
     }
 
-    private void loadAllImagesBack(Context context) {
-        Log.i(TAG, "all images have been loaded");
-        //run on UI ?
-        //Toast.makeText(context, R.string.all_photos_loaded, Toast.LENGTH_SHORT).show();
+    private void loadAllImagesBack(Context context, ToastCallback parent) {
+        parent.toastCallback(context.getString(R.string.all_photos_loaded));
     }
 
-    public void saveImage(Context context, String filename, Bitmap image) {
-        new SaveImageThread(context, filename, image).start();
+    public void saveImage(Context context, String filename, Bitmap image, ToastCallback parent) {
+        new SaveImageThread(context, filename, image, parent).start();
     }
 
-    private void saveImageBack(Context context, String filename) {
-        Log.i(TAG, "saved " + filename);
-        //run on UI ?
-        //Toast.makeText(context, filename, Toast.LENGTH_LONG).show();
+    private void saveImageBack(Context context, String text, ToastCallback parent) {
+        parent.toastCallback(text);
     }
 
     // done TODO: callback methods
@@ -74,17 +68,15 @@ public class DiskAdapter {
         parent.setImage(image, filename);
     }
 
-    public void removeAllImages(Context context) {
+    public void removeAllImages(Context context, ToastCallback parent) {
 
         // done TODO: delete photos from memory
 
-        new RemoveAllImagesThread(context).start();
+        new RemoveAllImagesThread(context, parent).start();
     }
 
-    private void removeAllImagesBack(Context context) {
-        Log.i(TAG, "all images have been removed");
-        //run on UI ?
-        //Toast.makeText(context, R.string.all_photos_removed, Toast.LENGTH_LONG).show();
+    private void removeAllImagesBack(Context context, ToastCallback parent) {
+        parent.toastCallback(context.getString(R.string.all_photos_removed));
     }
 
     // Maybe implement Runnables ?
@@ -94,11 +86,14 @@ public class DiskAdapter {
         private SetImageCallback parent;
         private File[] images;
         private int counter;
+        private ToastCallback toastParent;
 
-        public LoadAllImagesThread(Context context, SetImageCallback parent) {
+        public LoadAllImagesThread(Context context, SetImageCallback parent,
+                                   ToastCallback toastParent) {
             this.context = context;
             this.parent = parent;
             this.counter = 0;
+            this.toastParent = toastParent;
         }
 
         public void run() {
@@ -124,7 +119,7 @@ public class DiskAdapter {
                 loadImage(context, this, images[counter].getName());
             }
             else {
-                loadAllImagesBack(context);
+                loadAllImagesBack(context, toastParent);
             }
         }
     }
@@ -134,36 +129,34 @@ public class DiskAdapter {
         private Context context;
         private String filename;
         private Bitmap picture;
+        private ToastCallback parent;
 
-        public SaveImageThread(Context context, String filename, Bitmap picture) {
+        public SaveImageThread(Context context, String filename, Bitmap picture,
+                               ToastCallback parent) {
             this.context = context;
             this.filename = filename;
             this.picture = picture;
+            this.parent = parent;
         }
 
         @Override
         public void run() {
-            simulateDelay(DELAY_LONG);
+            simulateDelay(DELAY);
 
             // done TODO: make the app save data
 
             File savePath = new File(context.getFilesDir(), filename);
-            FileOutputStream outStream = null;
             try {
-                outStream = new FileOutputStream(savePath);
+                FileOutputStream outStream = new FileOutputStream(savePath);
                 picture.compress(Bitmap.CompressFormat.PNG, 100, outStream);
                 outStream.close();
             }
-            catch (FileNotFoundException ex) {
-                ex.printStackTrace();
-            }
             catch (IOException ex) {
                 ex.printStackTrace();
-                // make one catch out of two ??
             }
 
             saveImageBack(context, context.getString(R.string.saved_to) + " " + context.
-                    getFilesDir().toString() + "/" + filename);
+                    getFilesDir().toString() + "/" + filename, parent);
 
         }
     }
@@ -182,7 +175,7 @@ public class DiskAdapter {
         @Override
         public void run() {
 
-            simulateDelay(DELAY_LONG);
+            simulateDelay(DELAY);
             try {
                 File file = new File(context.getFilesDir(), filename);
                 Bitmap photo = BitmapFactory.decodeStream(new FileInputStream(file));
@@ -197,9 +190,11 @@ public class DiskAdapter {
 
     private class RemoveAllImagesThread extends Thread {
         private Context context;
+        private ToastCallback parent;
 
-        public RemoveAllImagesThread(Context context) {
+        public RemoveAllImagesThread(Context context, ToastCallback parent) {
             this.context = context;
+            this.parent = parent;
         }
 
         @Override
@@ -215,7 +210,7 @@ public class DiskAdapter {
                 }
             }
 
-            removeAllImagesBack(context);
+            removeAllImagesBack(context, parent);
         }
     }
 

@@ -23,7 +23,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 
-public class MainActivity extends ListActivity implements SetImageCallback{
+public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
     private static final String TAG = "DailySelfieAsm";
     private static final int PHOTO_REQUEST = 123;
     private PhotoViewAdapter mAdapter;
@@ -70,7 +70,7 @@ public class MainActivity extends ListActivity implements SetImageCallback{
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
-        DiskAdapter.getInstance().loadAllImages(getApplicationContext(), this);
+        DiskAdapter.getInstance().loadAllImages(getApplicationContext(), this, this);
 
         // done TODO: add alarm that reminds to take a selfie, pressing it opens the app
 
@@ -79,10 +79,8 @@ public class MainActivity extends ListActivity implements SetImageCallback{
         alarmIntent.putExtra(AlarmReceiver.NOTE, getRestartNotification(NOTE_TEXT));
         alarmPending = PendingIntent.getBroadcast(this, 0, alarmIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        Log.i(TAG, "made the alarm intent");
-
-        long futureInMillis = SystemClock.elapsedRealtime() + ALARM_DELAY;
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Log.i(TAG, "made the alarm intent");
 
     }
 
@@ -101,11 +99,6 @@ public class MainActivity extends ListActivity implements SetImageCallback{
                 .setAutoCancel(true)
                 .setContentIntent(intent)
                 .build();
-    }
-
-    @Override
-    public void setImage(Bitmap photo, String filename) {
-        runOnUiThread(new SetImage(photo, filename));
     }
 
     @Override
@@ -146,7 +139,8 @@ public class MainActivity extends ListActivity implements SetImageCallback{
                 String date = DateFormat.getDateTimeInstance().format(new Date());
                 Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
                 mAdapter.add(new PhotoRecord(date, photo));
-                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo);
+                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
+                        MainActivity.this);
             }
             else if (resultCode == RESULT_CANCELED) {
                 showToast(R.string.photo_not_taken);
@@ -200,7 +194,8 @@ public class MainActivity extends ListActivity implements SetImageCallback{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mAdapter.clearList();
-                        DiskAdapter.getInstance().removeAllImages(getApplicationContext());
+                        DiskAdapter.getInstance().removeAllImages(getApplicationContext(),
+                                MainActivity.this);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -226,6 +221,16 @@ public class MainActivity extends ListActivity implements SetImageCallback{
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
     }
 
+    @Override
+    public void setImage(Bitmap photo, String filename) {
+        runOnUiThread(new SetImage(photo, filename));
+    }
+
+    @Override
+    public void toastCallback(String text) {
+        runOnUiThread(new ToastCallback(text));
+    }
+
     private class SetImage implements Runnable {
         private Bitmap photo;
         private String filename;
@@ -239,6 +244,19 @@ public class MainActivity extends ListActivity implements SetImageCallback{
         public void run() {
             mAdapter.add(new PhotoRecord(filename, photo));
             Log.i(TAG, "added a photo from file");
+        }
+    }
+
+    private class ToastCallback implements Runnable {
+        private String text;
+
+        public ToastCallback(String text) {
+            this.text = text;
+        }
+
+        @Override
+        public void run() {
+            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
         }
     }
 
