@@ -143,7 +143,6 @@ public class DiskAdapter {
 
         @Override
         public void run() {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             simulateDelay(DELAY_LONG);
 
             // done TODO: make the app save data

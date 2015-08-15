@@ -1,10 +1,15 @@
 package com.asm.dailyselfieasm;
 
+import android.app.AlarmManager;
 import android.app.ListActivity;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -26,8 +31,14 @@ public class MainActivity extends ListActivity implements SetImageCallback{
     public static final String EXTRA_BITMAP = "ExtraBitmap";
     public static final String DATA_FROM_CAMERA = "data";
 
-    // TODO: add alarm that reminds to take a selfie, pressing it opens the app
-    //
+    // Alarm Section
+    private static final int ALARM_DELAY = 20000;
+    public static final String NOTE_TITLE = "Schdeduled notification";
+    public static final String NOTE_TEXT = "Notification with delay";
+    public static final int NOTE_ID = 12345;
+
+    private PendingIntent alarmPending;
+    private AlarmManager alarmManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +72,35 @@ public class MainActivity extends ListActivity implements SetImageCallback{
 
         DiskAdapter.getInstance().loadAllImages(getApplicationContext(), this);
 
+        // done TODO: add alarm that reminds to take a selfie, pressing it opens the app
+
+        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
+        alarmIntent.putExtra(AlarmReceiver.NOTE_ID, NOTE_ID);
+        alarmIntent.putExtra(AlarmReceiver.NOTE, getRestartNotification(NOTE_TEXT));
+        alarmPending = PendingIntent.getBroadcast(this, 0, alarmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        Log.i(TAG, "made the alarm intent");
+
+        long futureInMillis = SystemClock.elapsedRealtime() + ALARM_DELAY;
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+    }
+
+    private Notification getRestartNotification(String content) {
+
+        // done TODO: make the app start from notification
+
+        Intent restartIntent = new Intent(getApplicationContext(), MainActivity.class);
+        PendingIntent intent = PendingIntent.getActivity(MainActivity.this, 0, restartIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        Log.i(TAG, "made the restart intent");
+        return new Notification.Builder(this)
+                .setContentTitle(NOTE_TITLE)
+                .setContentText(content)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setAutoCancel(true)
+                .setContentIntent(intent)
+                .build();
     }
 
     @Override
@@ -71,10 +111,15 @@ public class MainActivity extends ListActivity implements SetImageCallback{
     @Override
     protected void onResume() {
         super.onResume();
+        alarmManager.cancel(alarmPending);
+        Log.i(TAG, "canceled the alarm");
     }
 
     @Override
     protected void onPause() {
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                SystemClock.elapsedRealtime() + ALARM_DELAY, alarmPending);
+        Log.i(TAG, "set the alarm");
         super.onPause();
     }
 
