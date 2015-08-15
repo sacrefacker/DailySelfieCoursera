@@ -47,6 +47,9 @@ public class PhotoViewAdapter extends BaseAdapter {
 
         if (null == convertView) {
 
+            // TODO: make it look nicer
+            //
+
             holder = new ViewHolder();
             newView = inflater.inflate(R.layout.photo_view, parent, false);
             holder.preview = (ImageView) newView.findViewById(R.id.photo_img);
@@ -76,12 +79,6 @@ public class PhotoViewAdapter extends BaseAdapter {
 
     public void clearList() {
         list.clear();
-        this.notifyDataSetChanged();
-    }
-
-    public void setListTo(ArrayList<PhotoRecord> setList) {
-        list.clear();
-        list = setList;
         this.notifyDataSetChanged();
     }
 

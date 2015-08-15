@@ -20,7 +20,7 @@ import java.text.DateFormat;
 import java.util.Date;
 
 
-public class MainActivity extends ListActivity {
+public class MainActivity extends ListActivity implements SetImageCallback{
     private static final String TAG = "DailySelfieAsm";
     private static final int PHOTO_REQUEST = 123;
     private PhotoViewAdapter mAdapter;
@@ -34,7 +34,9 @@ public class MainActivity extends ListActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
+
+        // TODO: landscape and portrait orientations
+        // Convert to fragments?
 
         ListView photoListView = getListView();
         photoListView.setId(android.R.id.list); // ??
@@ -59,14 +61,17 @@ public class MainActivity extends ListActivity {
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
-        mAdapter.setListTo(DiskAdapter.getInstance().
-                retrievePhotosFromMemory(getApplicationContext()));
-        showToast(R.string.done_loading_files);
+        DiskAdapter.getInstance().retrievePhotosFromMemory(getApplicationContext(), this);
 
     }
 
-    // TODO: landscape and portrait orientations
-    //
+    @Override
+    public void setImage(Bitmap photo, String filename) {
+
+        mAdapter.add(new PhotoRecord(filename, photo));
+        Log.i(TAG, "added a photo from file");
+
+    }
 
     @Override
     protected void onResume() {
@@ -174,6 +179,10 @@ public class MainActivity extends ListActivity {
     }
 
     private void takePhotoButton() {
+
+        // TODO: don't save photos in camera folder
+        //
+
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
     }

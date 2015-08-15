@@ -11,13 +11,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 
 public class DiskAdapter {
     private static final String TAG = "DailySelfieAsm";
+    private static final int DELAY = 2000;
 
     private static DiskAdapter instance;
 
@@ -35,11 +34,10 @@ public class DiskAdapter {
     // TODO: async task
     //
 
-    public ArrayList<PhotoRecord> retrievePhotosFromMemory(Context context) {
+    public void retrievePhotosFromMemory(Context context, SetImageCallback parent) {
 
         // done TODO: read photos from memory and add them to the list
 
-        ArrayList<PhotoRecord> list = new ArrayList<>();
         File directory = context.getFilesDir();
 
         if (directory.exists()) {
@@ -47,19 +45,14 @@ public class DiskAdapter {
             for (File file : files) {
                 Log.i(TAG, "found a file");
                 String filename = file.getName();
-                Bitmap photo = DiskAdapter.getInstance().
-                        openPhoto(context, filename);
-                if (null != photo) {
-                    list.add(new PhotoRecord(filename, photo));
-                    Log.i(TAG, "added a photo from file");
-                }
+                DiskAdapter.getInstance().loadImage(context, parent, filename);
             }
         }
 
-        return list;
     }
 
     public void savePhoto(Context context, String filename, Bitmap picture) {
+        simulateDelay(DELAY);
 
         // done TODO: make the app save data
 
@@ -83,7 +76,16 @@ public class DiskAdapter {
 
     }
 
-    public Bitmap openPhoto(Context context, String filename) {
+    // done TODO: callback methods
+
+    public void loadImage(Context context, SetImageCallback parent, String filename) {
+
+        parent.setImage(openImage(context, filename), filename);
+
+    }
+
+    private Bitmap openImage(Context context, String filename) {
+        simulateDelay(DELAY);
         Bitmap photo = null;
         try {
             File file = new File(context.getFilesDir(), filename);
@@ -94,6 +96,7 @@ public class DiskAdapter {
         }
 
         return photo;
+
     }
 
     public void removeAllPhotos(Context context) {
@@ -106,6 +109,15 @@ public class DiskAdapter {
             for (File file : files) {
                 file.delete();
             }
+        }
+    }
+
+    public void simulateDelay(int delay) {
+        try {
+            // Pretend downloading takes a long time
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
