@@ -15,4 +15,9 @@
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
     <string name="remove_cancel">You canceled the photo removal</string>
+    <string name="saved_to">Saved to</string>
+    <string name="cannot_load">Cannot load</string>
+    <string name="date">date:</string>
+    <string name="please_wait">Wait for it..</string>
+    <string name="all_photos_loaded">All photos have been loaded from memory</string>
 </resources>

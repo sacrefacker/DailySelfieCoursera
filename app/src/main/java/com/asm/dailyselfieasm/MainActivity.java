@@ -1,7 +1,5 @@
 package com.asm.dailyselfieasm;
 
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.app.ListActivity;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -61,16 +59,13 @@ public class MainActivity extends ListActivity implements SetImageCallback{
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
-        DiskAdapter.getInstance().retrievePhotosFromMemory(getApplicationContext(), this);
+        DiskAdapter.getInstance().loadAllImages(getApplicationContext(), this);
 
     }
 
     @Override
     public void setImage(Bitmap photo, String filename) {
-
-        mAdapter.add(new PhotoRecord(filename, photo));
-        Log.i(TAG, "added a photo from file");
-
+        runOnUiThread(new SetImage(photo, filename));
     }
 
     @Override
@@ -106,7 +101,7 @@ public class MainActivity extends ListActivity implements SetImageCallback{
                 String date = DateFormat.getDateTimeInstance().format(new Date());
                 Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
                 mAdapter.add(new PhotoRecord(date, photo));
-                DiskAdapter.getInstance().savePhoto(getApplicationContext(), date, photo);
+                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo);
             }
             else if (resultCode == RESULT_CANCELED) {
                 showToast(R.string.photo_not_taken);
@@ -160,8 +155,7 @@ public class MainActivity extends ListActivity implements SetImageCallback{
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mAdapter.clearList();
-                        DiskAdapter.getInstance().removeAllPhotos(getApplicationContext());
-                        showToast(R.string.all_photos_removed);
+                        DiskAdapter.getInstance().removeAllImages(getApplicationContext());
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -185,6 +179,22 @@ public class MainActivity extends ListActivity implements SetImageCallback{
 
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
+    }
+
+    private class SetImage implements Runnable {
+        private Bitmap photo;
+        private String filename;
+
+        public SetImage(Bitmap photo, String filename) {
+            this.filename = filename;
+            this.photo = photo;
+        }
+
+        @Override
+        public void run() {
+            mAdapter.add(new PhotoRecord(filename, photo));
+            Log.i(TAG, "added a photo from file");
+        }
     }
 
 }

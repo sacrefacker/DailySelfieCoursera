@@ -27,6 +27,7 @@ public class PhotoActivity extends Activity implements SetImageCallback{
         Intent incomingIntent = getIntent();
         String filename = incomingIntent.getStringExtra(MainActivity.EXTRA_BITMAP);
         DiskAdapter.getInstance().loadImage(getApplicationContext(), this, filename);
+        Toast.makeText(getApplicationContext(), R.string.please_wait, Toast.LENGTH_SHORT).show();
 
         // TODO: deleting photo from here
         // singleton / intent for result ?
@@ -37,14 +38,29 @@ public class PhotoActivity extends Activity implements SetImageCallback{
     @Override
     public void setImage(Bitmap image, String filename) {
         Log.i(TAG, "loaded photo " + getApplicationContext().getFilesDir().toString());
+        runOnUiThread(new SetImage(image, filename));
+    }
 
-        if (null != photoView && null != image) {
-            photoView.setImageBitmap(image);
-            Toast.makeText(getApplicationContext(), filename, Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(getApplicationContext(), "cannot load", Toast.LENGTH_SHORT).show();
+    private class SetImage implements Runnable {
+        private Bitmap image;
+        private String filename;
+
+        public SetImage(Bitmap image, String filename) {
+            this.image = image;
+            this.filename = filename;
         }
 
+        @Override
+        public void run() {
+
+            if (null != photoView && null != image) {
+                photoView.setImageBitmap(image);
+                Toast.makeText(getApplicationContext(), filename, Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(getApplicationContext(), R.string.cannot_load, Toast.LENGTH_SHORT).show();
+            }
+
+        }
     }
 }
