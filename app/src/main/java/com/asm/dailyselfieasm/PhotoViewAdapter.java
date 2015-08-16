@@ -60,7 +60,7 @@ public class PhotoViewAdapter extends BaseAdapter {
         }
 
         holder.preview.setImageBitmap(curr.getPreview());
-        holder.date.setText(mContext.getString(R.string.date) + " " + curr.getDate());
+        holder.date.setText(curr.getDate());
 
         return newView;
     }

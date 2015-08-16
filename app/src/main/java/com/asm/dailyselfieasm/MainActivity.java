@@ -23,6 +23,7 @@ import android.app.AlertDialog;
 import java.io.File;
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
@@ -200,9 +201,9 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         //
 
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(
+        /*takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(
                 new File(getApplicationContext().getFilesDir().toString() + File.separator
-                        + DateFormat.getDateTimeInstance().format(new Date()))) + ".jpg");
+                        + DateFormat.getDateTimeInstance().format(new Date()))) + ".jpg");*/
         startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
     }
 
@@ -210,13 +211,15 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
-                /*Bundle extras = data.getExtras();
-                String date = DateFormat.getDateTimeInstance().format(new Date());
-                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
-                mAdapter.add(new PhotoRecord(date, photo));*/
 
-                /*DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
-                        MainActivity.this);*/
+                Bundle extras = data.getExtras();
+                String date = DateFormat.getDateTimeInstance(DateFormat.SHORT,
+                        DateFormat.SHORT).format(new Date());
+                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
+                mAdapter.add(new PhotoRecord(date, photo));
+
+                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
+                        MainActivity.this);
             }
             else if (resultCode == RESULT_CANCELED) {
                 showToast(R.string.photo_not_taken);

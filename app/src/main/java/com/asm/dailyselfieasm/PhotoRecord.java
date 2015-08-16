@@ -1,9 +1,13 @@
 package com.asm.dailyselfieasm;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 
 public class PhotoRecord {
+    private static final String TAG = "DailySelfieAsm";
+    public static final int DIMENS = 360;
+
     private String date;
     private Bitmap photo;
     private Bitmap preview;
@@ -12,6 +16,8 @@ public class PhotoRecord {
         this.date = date;
         this.photo = photo;
         this.preview = getPreview(photo);
+        Log.i(TAG, "a preview with dimensions " + preview.getWidth() + " by "
+                + preview.getHeight() + " was created");
     }
 
     public PhotoRecord() {
@@ -47,12 +53,32 @@ public class PhotoRecord {
         return "Date:" + date;
     }
 
-    // TODO: make actual previews
-    //
-
     private Bitmap getPreview(Bitmap photo) {
-        Bitmap preview = photo;
-        return preview;
+
+        // done TODO: make actual previews
+        // make the dimensions sync with xml view ?
+
+        if (photo.getWidth() >= photo.getHeight()){
+            preview = Bitmap.createBitmap(
+                    photo,
+                    photo.getWidth()/2 - photo.getHeight()/2,
+                    0,
+                    photo.getHeight(),
+                    photo.getHeight()
+            );
+        }
+        else {
+            preview = Bitmap.createBitmap(
+                    photo,
+                    0,
+                    photo.getHeight()/2 - photo.getWidth()/2,
+                    photo.getWidth(),
+                    photo.getWidth()
+            );
+        }
+
+        return Bitmap.createScaledBitmap(preview, DIMENS, DIMENS, true);
+
     }
 
 }

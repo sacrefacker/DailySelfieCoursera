@@ -5,4 +5,6 @@
     android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:text="@string/footer_text"
-    android:textSize="20sp" />
+    android:textStyle="bold"
+    android:textSize="@dimen/abc_text_size_large_material"
+    />
