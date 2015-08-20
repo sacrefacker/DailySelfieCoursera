@@ -100,8 +100,8 @@ public class DiskAdapter {
 
             // done TODO: read photos from memory and add them to the list
 
-            File directory = context.getFilesDir();
-            if (directory.exists()) {
+            File directory = context.getExternalFilesDir(null);
+            if (null != directory && directory.exists()) {
                 images = directory.listFiles();
                 nextImage();
             }
@@ -124,6 +124,9 @@ public class DiskAdapter {
         }
     }
 
+    // TODO: save previews
+    //
+
     private class SaveImageThread extends Thread {
 
         private Context context;
@@ -145,7 +148,7 @@ public class DiskAdapter {
 
             // done TODO: make the app save data
 
-            File savePath = new File(context.getFilesDir(), filename);
+            File savePath = new File(context.getExternalFilesDir(null), filename);
             try {
                 FileOutputStream outStream = new FileOutputStream(savePath);
                 picture.compress(Bitmap.CompressFormat.PNG, 100, outStream);
@@ -155,8 +158,13 @@ public class DiskAdapter {
                 ex.printStackTrace();
             }
 
-            saveImageBack(context.getString(R.string.saved_to) + " " + context.
-                    getFilesDir().toString() + "/" + filename, parent);
+            try {
+                saveImageBack(context.getString(R.string.saved_to) + " " + context.
+                        getExternalFilesDir(null).toString() + "/" + filename, parent);
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
 
         }
     }
@@ -177,7 +185,8 @@ public class DiskAdapter {
 
             simulateDelay(DELAY);
             try {
-                File file = new File(context.getFilesDir(), filename);
+                File file = new File(context.getExternalFilesDir(null), filename);
+                Log.i(TAG, "trying to load " + file.getPath());
                 Bitmap photo = BitmapFactory.decodeStream(new FileInputStream(file));
                 loadImageBack(parent, photo, filename);
             }
@@ -200,8 +209,8 @@ public class DiskAdapter {
         @Override
         public void run() {
 
-            File directory = context.getFilesDir();
-            if (directory.exists()) {
+            File directory = context.getExternalFilesDir(null);
+            if (null != directory && directory.exists()) {
                 File[] files = directory.listFiles();
                 for (File file : files) {
                     if (!file.delete()) {

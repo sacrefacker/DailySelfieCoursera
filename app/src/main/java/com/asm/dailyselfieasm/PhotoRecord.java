@@ -77,6 +77,9 @@ public class PhotoRecord {
             );
         }
 
+        // TODO: make the previews round
+        //
+
         return Bitmap.createScaledBitmap(preview, DIMENS, DIMENS, true);
 
     }
