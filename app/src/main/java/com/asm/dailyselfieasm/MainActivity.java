@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -21,7 +22,9 @@ import android.widget.Toast;
 import android.app.AlertDialog;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
@@ -33,6 +36,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     public static final String EXTRA_BITMAP = "ExtraBitmap";
     public static final String DATA_FROM_CAMERA = "data";
+    private static File tempPhotoFile;
 
     // Alarm Section
     private static final int ALARM_DELAY = 20000;
@@ -48,7 +52,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         super.onCreate(savedInstanceState);
 
         // TODO: landscape and portrait orientations
-        // Convert to fragments?
+        //
 
         ListView photoListView = getListView();
         photoListView.setId(android.R.id.list); // ??
@@ -145,9 +149,12 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         return true;
     }
 
+    // TODO: stop/resume notifications button
+    //
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
+        // Handle action bar item clickfos here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
 
@@ -195,16 +202,45 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         Toast.makeText(getApplicationContext(), stringResource, Toast.LENGTH_SHORT).show();
     }
 
+    private File createImageFile() throws IOException {
+
+        String timeStamp = DateFormat.getDateTimeInstance(DateFormat.SHORT,
+                DateFormat.SHORT).format(new Date());
+        String imageFileName = "_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        tempPhotoFile = image;
+
+        return image;
+    }
+
     private void takePhotoButton() {
 
-        // TODO: don't save photos in camera folder
-        //
+        // done TODO: don't save photos in camera folder
 
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         /*takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(
                 new File(getApplicationContext().getFilesDir().toString() + File.separator
                         + DateFormat.getDateTimeInstance().format(new Date()))) + ".jpg");*/
-        startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
+        if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            if (null != photoFile) {
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            }
+
+            startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
+        }
     }
 
     @Override
@@ -212,14 +248,37 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         if (requestCode == PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
 
+                // done TODO: get full resolution pictures
+
+                Log.i(TAG, "received the camera intent back");
+
+                // TODO: rotate the photos correctly
+                //
+
+                File oldFile = tempPhotoFile;
+                String filename = oldFile.getName();
+                File file = new File(getApplicationContext().getExternalFilesDir(null), filename);
+                Log.i(TAG, "trying to move the photo...");
+                if (oldFile.renameTo(file)) {
+                    Log.i(TAG, "the photo has been moved to " + file.getPath());
+                    tempPhotoFile = null;
+                    DiskAdapter.getInstance().loadImage(getApplicationContext(), this, filename);
+                }
+
+                /*
                 Bundle extras = data.getExtras();
+                String timestamp = new SimpleDateFormat("dd/MM.YY/HH:mm:ss", Locale.US)
+                        .format(new Date());
+                String filename = "_" + timestamp + "_";
                 String date = DateFormat.getDateTimeInstance(DateFormat.SHORT,
                         DateFormat.SHORT).format(new Date());
                 Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
+
                 mAdapter.add(new PhotoRecord(date, photo));
 
                 DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
                         MainActivity.this);
+                */
             }
             else if (resultCode == RESULT_CANCELED) {
                 showToast(R.string.photo_not_taken);

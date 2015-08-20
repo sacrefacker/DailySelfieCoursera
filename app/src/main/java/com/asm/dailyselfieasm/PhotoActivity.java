@@ -20,6 +20,7 @@ public class PhotoActivity extends Activity implements SetImageCallback{
 
         // TODO: landscape and portrait orientations
         // Convert to fragments?
+        //
 
         setContentView(R.layout.photo_activity);
         photoView = (ImageView) findViewById(R.id.imageView);
