@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -32,16 +33,18 @@ import java.util.Locale;
 public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
     private static final String TAG = "DailySelfieAsm";
     private static final int PHOTO_REQUEST = 123;
+
     private PhotoViewAdapter mAdapter;
+    private static boolean SET_NOTIFICATIONS = true;
+    private static final String SET_NOTIFICATIONS_SHARED = "set-notifications";
+    private static SharedPreferences preferences;
 
     public static final String EXTRA_BITMAP = "ExtraBitmap";
-    public static final String DATA_FROM_CAMERA = "data";
     private static File tempPhotoFile;
 
     // Alarm Section
     private static final int ALARM_DELAY = 20000;
-    public static final String NOTE_TITLE = "Time for a selfie";
-    public static final String NOTE_TEXT = "This reminds you to take a selfie once in a while";
+    private static final int ALARM_REPEATING_DELAY = 60000;
     public static final int NOTE_ID = 12345;
 
     private PendingIntent alarmPending;
@@ -51,7 +54,9 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // TODO: landscape and portrait orientations
+        preferences = getPreferences(MODE_PRIVATE);
+
+        // TODO: landscape and portrait orientations maybe?
         //
 
         ListView photoListView = getListView();
@@ -83,7 +88,8 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         Intent alarmIntent = new Intent(this, AlarmReceiver.class);
         alarmIntent.putExtra(AlarmReceiver.NOTE_ID, NOTE_ID);
-        alarmIntent.putExtra(AlarmReceiver.NOTE, getRestartNotification(NOTE_TEXT));
+        alarmIntent.putExtra(AlarmReceiver.NOTE, getRestartNotification(getApplicationContext()
+                .getString(R.string.notification_text)));
         alarmPending = PendingIntent.getBroadcast(this, 0, alarmIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
@@ -100,7 +106,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
                 PendingIntent.FLAG_UPDATE_CURRENT);
         Log.i(TAG, "made the restart intent");
         return new Notification.Builder(this)
-                .setContentTitle(NOTE_TITLE)
+                .setContentTitle(getApplicationContext().getString(R.string.notification_title))
                 .setContentText(content)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setAutoCancel(true)
@@ -111,15 +117,24 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     @Override
     protected void onResume() {
         super.onResume();
+        SET_NOTIFICATIONS = preferences.getBoolean(SET_NOTIFICATIONS_SHARED, true);
         alarmManager.cancel(alarmPending);
-        Log.i(TAG, "canceled the alarm");
+        Log.i(TAG, "canceled the alarms if there were any");
     }
 
     @Override
     protected void onPause() {
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                SystemClock.elapsedRealtime() + ALARM_DELAY, alarmPending);
-        Log.i(TAG, "set the alarm");
+        if (SET_NOTIFICATIONS) {
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    SystemClock.elapsedRealtime() + ALARM_DELAY,
+                    ALARM_REPEATING_DELAY, alarmPending);
+            Log.i(TAG, "set the alarm");
+        }
+
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putBoolean(SET_NOTIFICATIONS_SHARED, SET_NOTIFICATIONS);
+        editor.apply();
+
         super.onPause();
     }
 
@@ -149,8 +164,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         return true;
     }
 
-    // TODO: stop/resume notifications button
-    //
+    // done TODO: stop/resume notifications button
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -163,15 +177,30 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
                 Log.i(TAG, "Go to camera from menu");
                 takePhotoButton();
                 return true;
+
+            case R.id.action_notification_switch:
+                SET_NOTIFICATIONS = !SET_NOTIFICATIONS;
+                showNotificationsStatus();
+                return true;
+
             case R.id.action_clear_list:
 
                 // done TODO: get clear list confirmation
 
                 removeAllPhotosDialog();
-
                 return true;
+
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void showNotificationsStatus() {
+        if (SET_NOTIFICATIONS) {
+            showToast(R.string.notifications_are_on);
+        }
+        else {
+            showToast(R.string.notifications_are_off);
         }
     }
 

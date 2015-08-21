@@ -72,6 +72,10 @@ public class PhotoViewAdapter extends BaseAdapter {
     }
 
     public void add(PhotoRecord listItem) {
+
+        // TODO: add previews instead of full-res. Full-res is only for photo activity, from disk
+        //
+
         list.add(listItem);
         notifyDataSetChanged();
     }
