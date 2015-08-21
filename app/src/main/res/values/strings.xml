@@ -20,4 +20,9 @@
     <string name="date">date:</string>
     <string name="please_wait">Wait for it..</string>
     <string name="all_photos_loaded">All photos have been loaded from memory</string>
+    <string name="action_notification_switch">Notifications on/off</string>
+    <string name="notifications_are_on">Notifications are ON</string>
+    <string name="notifications_are_off">Notifications are OFF</string>
+    <string name="notification_title">Daily Selfie</string>
+    <string name="notification_text">Time for a selfie!</string>
 </resources>
