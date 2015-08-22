@@ -12,7 +12,7 @@
     <string name="photo_not_taken">You didn\'t take a photo</string>
     <string name="photo_failed">Photo capture failed</string>
     <string name="all_photos_removed">All photos were removed</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="remove_cancel">You canceled the photo removal</string>
     <string name="saved_to">Saved to</string>
