@@ -6,6 +6,7 @@ import android.util.Log;
 
 public class PhotoRecord {
     private static final String TAG = "DailySelfieAsm";
+    public static final int PREVIEW_DIMENS = 360;
 
     private String date;
     private Bitmap preview;
@@ -41,6 +42,43 @@ public class PhotoRecord {
     @Override
     public String toString() {
         return "Date:" + date;
+    }
+
+    public static Bitmap makePreview(Bitmap photo) {
+
+        // done TODO: make actual previews
+        // make the dimensions sync with xml view ?
+
+        Bitmap preview = null;
+
+        if (photo.getWidth() >= photo.getHeight()){
+            preview = Bitmap.createBitmap(
+                    photo,
+                    photo.getWidth()/2 - photo.getHeight()/2,
+                    0,
+                    photo.getHeight(),
+                    photo.getHeight()
+            );
+        }
+        else {
+            preview = Bitmap.createBitmap(
+                    photo,
+                    0,
+                    photo.getHeight()/2 - photo.getWidth()/2,
+                    photo.getWidth(),
+                    photo.getWidth()
+            );
+        }
+        Bitmap scaled = Bitmap.createScaledBitmap(preview, PREVIEW_DIMENS, PREVIEW_DIMENS, true);
+
+        Log.i(TAG, "a preview with dimensions " + scaled.getWidth() + " by "
+                + scaled.getHeight() + " was created");
+
+        // TODO: make the previews round
+        //
+
+        return scaled;
+
     }
 
 }

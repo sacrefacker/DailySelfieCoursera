@@ -1,10 +1,8 @@
 package com.asm.dailyselfieasm;
 
+import android.app.ActionBar;
 import android.app.AlarmManager;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.ListActivity;
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -41,95 +39,53 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     public static final String EXTRA_BITMAP = "ExtraBitmap";
     private static File tempPhotoFile;
-    public static final int PREVIEW_DIMENS = 360;
 
     // Alarm Section
     private static final int ALARM_DELAY = 20000;
     private static final int ALARM_REPEATING_DELAY = 60000;
-    public static final int NOTE_ID = 12345;
-
-    private PendingIntent alarmPending;
     private AlarmManager alarmManager;
+    private PendingIntent alarmIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        //ListView photoListView = (ListView) findViewById(R.id.list);
-        //photoListView.addFooterView(footerView);
-        //photoListView.setId(android.R.id.list); // ??
-
         preferences = getPreferences(MODE_PRIVATE);
 
         DiskAdapter.setSaveFolder(getApplicationContext());
 
-        View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
-
         // TODO: checkbox and a button on Action Bar to remove photos
         //
-
-        footerView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                // done TODO: make the app open the camera and receive photo
-
-                Log.i(TAG, "Go to camera from footer");
-                takePhotoButton();
-
-            }
-        });
 
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
         DiskAdapter.getInstance().loadPreviews(this, this);
 
-        // done TODO: add alarm that reminds to take a selfie, pressing it opens the app
-
-        Intent alarmIntent = new Intent(this, AlarmReceiver.class);
-        alarmIntent.putExtra(AlarmReceiver.NOTE_ID, NOTE_ID);
-        alarmIntent.putExtra(AlarmReceiver.NOTE, getRestartNotification(getApplicationContext()
-                .getString(R.string.notification_text)));
-        alarmPending = PendingIntent.getBroadcast(this, 0, alarmIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Log.i(TAG, "made the alarm intent");
-
-    }
-
-    private Notification getRestartNotification(String content) {
-
-        // done TODO: make the app start from notification
-
-        Intent restartIntent = new Intent(getApplicationContext(), MainActivity.class);
-        PendingIntent intent = PendingIntent.getActivity(MainActivity.this, 0, restartIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        Log.i(TAG, "made the restart intent");
-        return new Notification.Builder(this)
-                .setContentTitle(getApplicationContext().getString(R.string.notification_title))
-                .setContentText(content)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setAutoCancel(true)
-                .setContentIntent(intent)
-                .build();
+        alarmIntent = AlarmHandler.getAlarmIntent(getApplicationContext());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         SET_NOTIFICATIONS = preferences.getBoolean(SET_NOTIFICATIONS_SHARED, true);
-        alarmManager.cancel(alarmPending);
+        alarmManager.cancel(alarmIntent);
         Log.i(TAG, "canceled the alarms if there were any");
     }
 
     @Override
     protected void onPause() {
+
+        // done TODO: add alarm that reminds to take a selfie, pressing it ope
+
         if (SET_NOTIFICATIONS) {
-            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
+            alarmManager.setRepeating(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
                     SystemClock.elapsedRealtime() + ALARM_DELAY,
-                    ALARM_REPEATING_DELAY, alarmPending);
+                    ALARM_REPEATING_DELAY,
+                    alarmIntent);
             Log.i(TAG, "set the alarm");
         }
 
@@ -172,6 +128,9 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         switch (item.getItemId()) {
             case R.id.action_take_photo:
+
+                // done TODO: make the app open the camera and receive photo
+
                 Log.i(TAG, "Go to camera from menu");
                 takePhotoButton();
                 return true;
@@ -228,19 +187,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         Toast.makeText(getApplicationContext(), stringResource, Toast.LENGTH_SHORT).show();
     }
 
-    private File createImageFile() throws IOException {
-
-        String dateStamp = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date());
-        String timeStamp = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = new File(path, dateStamp + "_" + timeStamp);
-
-        tempPhotoFile = image;
-
-        return image;
-    }
-
     private void takePhotoButton() {
 
         // done TODO: don't save photos in camera folder
@@ -260,6 +206,19 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
             startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
         }
+    }
+
+    private File createImageFile() throws IOException {
+
+        String dateStamp = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date());
+        String timeStamp = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
+        File path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = new File(path, dateStamp + "_" + timeStamp);
+
+        tempPhotoFile = image;
+
+        return image;
     }
 
     @Override
@@ -291,7 +250,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     @Override
     public void setImage(Bitmap photo, String filename) {
-        runOnUiThread(new SetImage(makePreview(photo), filename));
+        runOnUiThread(new SetImage(PhotoRecord.makePreview(photo), filename));
     }
 
     @Override
@@ -314,43 +273,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
             Log.i(TAG, "added a photo from file: " + filename);
             DiskAdapter.getInstance().savePreview(filename, preview);
         }
-    }
-
-    private Bitmap makePreview(Bitmap photo) {
-
-        // done TODO: make actual previews
-        // make the dimensions sync with xml view ?
-
-        Bitmap preview = null;
-
-        if (photo.getWidth() >= photo.getHeight()){
-            preview = Bitmap.createBitmap(
-                    photo,
-                    photo.getWidth()/2 - photo.getHeight()/2,
-                    0,
-                    photo.getHeight(),
-                    photo.getHeight()
-            );
-        }
-        else {
-            preview = Bitmap.createBitmap(
-                    photo,
-                    0,
-                    photo.getHeight()/2 - photo.getWidth()/2,
-                    photo.getWidth(),
-                    photo.getWidth()
-            );
-        }
-        Bitmap scaled = Bitmap.createScaledBitmap(preview, PREVIEW_DIMENS, PREVIEW_DIMENS, true);
-
-        Log.i(TAG, "a preview with dimensions " + scaled.getWidth() + " by "
-                + scaled.getHeight() + " was created");
-
-        // TODO: make the previews round
-        //
-
-        return scaled;
-
     }
 
     private class ToastCallback implements Runnable {
