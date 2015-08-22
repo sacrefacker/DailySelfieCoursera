@@ -1,6 +1,8 @@
 package com.asm.dailyselfieasm;
 
 import android.app.AlarmManager;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ListActivity;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -52,13 +54,16 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.main_activity);
+
+        //ListView photoListView = (ListView) findViewById(R.id.list);
+        //photoListView.addFooterView(footerView);
+        //photoListView.setId(android.R.id.list); // ??
 
         preferences = getPreferences(MODE_PRIVATE);
 
         DiskAdapter.setSaveFolder(getApplicationContext());
 
-        ListView photoListView = getListView();
-        photoListView.setId(android.R.id.list); // ??
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
 
         // TODO: swipe to remove entry and cancel button
@@ -76,7 +81,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
             }
         });
 
-        photoListView.addFooterView(footerView);
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
@@ -148,7 +152,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         String filename = ((PhotoRecord)mAdapter.getItem(position)).getDate();
         showPhotoIntent.putExtra(EXTRA_BITMAP, filename);
         startActivity(showPhotoIntent);
-
     }
 
     @Override
@@ -166,9 +169,6 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clickfos here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
 
         switch (item.getItemId()) {
             case R.id.action_take_photo:

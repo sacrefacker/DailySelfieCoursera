@@ -232,6 +232,9 @@ public class DiskAdapter {
         }
     }
 
+    // TODO: separate loading and normalization
+    //
+
     private class LoadImageThread extends Thread {
         SetImageCallback parent;
         private String filename;
