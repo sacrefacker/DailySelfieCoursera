@@ -6,18 +6,16 @@ import android.util.Log;
 
 public class PhotoRecord {
     private static final String TAG = "DailySelfieAsm";
-    public static final int DIMENS = 360;
 
     private String date;
-    private Bitmap photo;
     private Bitmap preview;
 
-    public PhotoRecord(String date, Bitmap photo) {
+    public PhotoRecord(String date, Bitmap preview) {
+
+        // done TODO: add previews, not full-res. Full-res is only for photo activity, from disk
+
         this.date = date;
-        this.photo = photo;
-        this.preview = getPreview(photo);
-        Log.i(TAG, "a preview with dimensions " + preview.getWidth() + " by "
-                + preview.getHeight() + " was created");
+        this.preview = preview;
     }
 
     public PhotoRecord() {
@@ -32,14 +30,6 @@ public class PhotoRecord {
         this.date = date;
     }
 
-    public Bitmap getPhoto() {
-        return photo;
-    }
-
-    public void setPhoto(Bitmap photo) {
-        this.photo = photo;
-    }
-
     public Bitmap getPreview() {
         return preview;
     }
@@ -51,37 +41,6 @@ public class PhotoRecord {
     @Override
     public String toString() {
         return "Date:" + date;
-    }
-
-    private Bitmap getPreview(Bitmap photo) {
-
-        // done TODO: make actual previews
-        // make the dimensions sync with xml view ?
-
-        if (photo.getWidth() >= photo.getHeight()){
-            preview = Bitmap.createBitmap(
-                    photo,
-                    photo.getWidth()/2 - photo.getHeight()/2,
-                    0,
-                    photo.getHeight(),
-                    photo.getHeight()
-            );
-        }
-        else {
-            preview = Bitmap.createBitmap(
-                    photo,
-                    0,
-                    photo.getHeight()/2 - photo.getWidth()/2,
-                    photo.getWidth(),
-                    photo.getWidth()
-            );
-        }
-
-        // TODO: make the previews round
-        //
-
-        return Bitmap.createScaledBitmap(preview, DIMENS, DIMENS, true);
-
     }
 
 }

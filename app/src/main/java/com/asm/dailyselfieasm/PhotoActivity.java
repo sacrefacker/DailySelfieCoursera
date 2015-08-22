@@ -31,7 +31,7 @@ public class PhotoActivity extends Activity implements SetImageCallback{
 
         Intent incomingIntent = getIntent();
         String filename = incomingIntent.getStringExtra(MainActivity.EXTRA_BITMAP);
-        DiskAdapter.getInstance().loadImage(getApplicationContext(), this, filename);
+        DiskAdapter.getInstance().loadImage(this, filename, false);
         Toast.makeText(getApplicationContext(), R.string.please_wait, Toast.LENGTH_SHORT).show();
 
         // TODO: deleting photo from here
@@ -42,7 +42,7 @@ public class PhotoActivity extends Activity implements SetImageCallback{
 
     @Override
     public void setImage(Bitmap image, String filename) {
-        Log.i(TAG, "loaded photo " + getApplicationContext().getFilesDir().toString());
+        Log.i(TAG, "loaded photo");
         runOnUiThread(new SetImage(image, filename));
     }
 

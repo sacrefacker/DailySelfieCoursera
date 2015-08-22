@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-
 public class PhotoViewAdapter extends BaseAdapter {
     private ArrayList<PhotoRecord> list = new ArrayList<>();
     private static LayoutInflater inflater = null;
@@ -46,9 +45,6 @@ public class PhotoViewAdapter extends BaseAdapter {
 
         if (null == convertView) {
 
-            // TODO: make it look nicer
-            //
-
             holder = new ViewHolder();
             newView = inflater.inflate(R.layout.photo_view, parent, false);
             holder.preview = (ImageView) newView.findViewById(R.id.photo_img);
@@ -65,17 +61,12 @@ public class PhotoViewAdapter extends BaseAdapter {
         return newView;
     }
 
-
     static class ViewHolder {
         ImageView preview;
         TextView date;
     }
 
     public void add(PhotoRecord listItem) {
-
-        // TODO: add previews instead of full-res. Full-res is only for photo activity, from disk
-        //
-
         list.add(listItem);
         notifyDataSetChanged();
     }

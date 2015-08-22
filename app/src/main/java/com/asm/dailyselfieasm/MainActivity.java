@@ -25,9 +25,7 @@ import android.app.AlertDialog;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 
 public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
@@ -41,6 +39,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     public static final String EXTRA_BITMAP = "ExtraBitmap";
     private static File tempPhotoFile;
+    public static final int PREVIEW_DIMENS = 360;
 
     // Alarm Section
     private static final int ALARM_DELAY = 20000;
@@ -56,8 +55,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         preferences = getPreferences(MODE_PRIVATE);
 
-        // TODO: landscape and portrait orientations maybe?
-        //
+        DiskAdapter.setSaveFolder(getApplicationContext());
 
         ListView photoListView = getListView();
         photoListView.setId(android.R.id.list); // ??
@@ -82,7 +80,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
-        DiskAdapter.getInstance().loadAllImages(getApplicationContext(), this, this);
+        DiskAdapter.getInstance().loadPreviews(this, this);
 
         // done TODO: add alarm that reminds to take a selfie, pressing it opens the app
 
@@ -213,8 +211,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mAdapter.clearList();
-                        DiskAdapter.getInstance().removeAllImages(getApplicationContext(),
-                                MainActivity.this);
+                        DiskAdapter.getInstance().removeAllImages(MainActivity.this);
                     }
                 })
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -233,16 +230,11 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     private File createImageFile() throws IOException {
 
-        String timeStamp = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-                DateFormat.SHORT).format(new Date());
-        String imageFileName = "_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
+        String dateStamp = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date());
+        String timeStamp = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
+        File path = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+        File image = new File(path, dateStamp + "_" + timeStamp);
 
         tempPhotoFile = image;
 
@@ -254,9 +246,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         // done TODO: don't save photos in camera folder
 
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        /*takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(
-                new File(getApplicationContext().getFilesDir().toString() + File.separator
-                        + DateFormat.getDateTimeInstance().format(new Date()))) + ".jpg");*/
+
         if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
             File photoFile = null;
             try {
@@ -287,23 +277,8 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
                 if (oldFile.renameTo(file)) {
                     Log.i(TAG, "the photo has been moved to " + file.getPath());
                     tempPhotoFile = null;
-                    DiskAdapter.getInstance().loadImage(getApplicationContext(), this, filename);
+                    DiskAdapter.getInstance().loadImage(this, filename, false);
                 }
-
-                /*
-                Bundle extras = data.getExtras();
-                String timestamp = new SimpleDateFormat("dd/MM.YY/HH:mm:ss", Locale.US)
-                        .format(new Date());
-                String filename = "_" + timestamp + "_";
-                String date = DateFormat.getDateTimeInstance(DateFormat.SHORT,
-                        DateFormat.SHORT).format(new Date());
-                Bitmap photo = (Bitmap) extras.get(DATA_FROM_CAMERA);
-
-                mAdapter.add(new PhotoRecord(date, photo));
-
-                DiskAdapter.getInstance().saveImage(getApplicationContext(), date, photo,
-                        MainActivity.this);
-                */
             }
             else if (resultCode == RESULT_CANCELED) {
                 showToast(R.string.photo_not_taken);
@@ -316,40 +291,79 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     @Override
     public void setImage(Bitmap photo, String filename) {
-        runOnUiThread(new SetImage(photo, filename));
+        runOnUiThread(new SetImage(makePreview(photo), filename));
     }
 
     @Override
-    public void toastCallback(String text) {
-        runOnUiThread(new ToastCallback(text));
+    public void toastCallback(int textResource) {
+        runOnUiThread(new ToastCallback(textResource));
     }
 
     private class SetImage implements Runnable {
-        private Bitmap photo;
+        private Bitmap preview;
         private String filename;
 
-        public SetImage(Bitmap photo, String filename) {
+        public SetImage(Bitmap preview, String filename) {
             this.filename = filename;
-            this.photo = photo;
+            this.preview = preview;
         }
 
         @Override
         public void run() {
-            mAdapter.add(new PhotoRecord(filename, photo));
-            Log.i(TAG, "added a photo from file");
+            mAdapter.add(new PhotoRecord(filename, preview));
+            Log.i(TAG, "added a photo from file: " + filename);
+            DiskAdapter.getInstance().savePreview(filename, preview);
         }
     }
 
-    private class ToastCallback implements Runnable {
-        private String text;
+    private Bitmap makePreview(Bitmap photo) {
 
-        public ToastCallback(String text) {
-            this.text = text;
+        // done TODO: make actual previews
+        // make the dimensions sync with xml view ?
+
+        Bitmap preview = null;
+
+        if (photo.getWidth() >= photo.getHeight()){
+            preview = Bitmap.createBitmap(
+                    photo,
+                    photo.getWidth()/2 - photo.getHeight()/2,
+                    0,
+                    photo.getHeight(),
+                    photo.getHeight()
+            );
+        }
+        else {
+            preview = Bitmap.createBitmap(
+                    photo,
+                    0,
+                    photo.getHeight()/2 - photo.getWidth()/2,
+                    photo.getWidth(),
+                    photo.getWidth()
+            );
+        }
+        Bitmap scaled = Bitmap.createScaledBitmap(preview, PREVIEW_DIMENS, PREVIEW_DIMENS, true);
+
+        Log.i(TAG, "a preview with dimensions " + scaled.getWidth() + " by "
+                + scaled.getHeight() + " was created");
+
+        // TODO: make the previews round
+        //
+
+        return scaled;
+
+    }
+
+    private class ToastCallback implements Runnable {
+        private int textResource;
+
+        public ToastCallback(int textResource) {
+            this.textResource = textResource;
         }
 
         @Override
         public void run() {
-            Toast.makeText(getApplicationContext(), text, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), getApplicationContext()
+                    .getString(textResource), Toast.LENGTH_SHORT).show();
         }
     }
 
