@@ -3,6 +3,8 @@ package com.asm.dailyselfieasm;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.util.Log;
 
 import java.io.File;
@@ -16,7 +18,9 @@ public class DiskAdapter {
     // Maybe just make three separate thread classes ?
 
     private static final String TAG = "DailySelfieAsm";
-    private static final int DELAY = 1000;
+    private static final int DELAY = 400;
+
+    public static final int MAX_DIMENS = 1920;
 
     private static DiskAdapter instance;
 
@@ -159,8 +163,11 @@ public class DiskAdapter {
             }
 
             try {
-                saveImageBack(context.getString(R.string.saved_to) + " " + context.
-                        getExternalFilesDir(null).toString() + "/" + filename, parent);
+                File path = context.getExternalFilesDir(null);
+                if (null != path) {
+                    saveImageBack(context.getString(R.string.saved_to) + " " +
+                            path.toString() + "/" + filename, parent);
+                }
             }
             catch (Exception ex) {
                 ex.printStackTrace();
@@ -188,12 +195,69 @@ public class DiskAdapter {
                 File file = new File(context.getExternalFilesDir(null), filename);
                 Log.i(TAG, "trying to load " + file.getPath());
                 Bitmap photo = BitmapFactory.decodeStream(new FileInputStream(file));
+                photo = normalizeImage(context, photo, filename);
                 loadImageBack(parent, photo, filename);
             }
             catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
 
+        }
+
+        // done TODO: scale bitmap to prevent overusage of memory and rotate correctly
+
+        private Bitmap normalizeImage(Context context, Bitmap image, String filename) {
+
+            int newWidth = MAX_DIMENS;
+            int newHeight = MAX_DIMENS;
+
+            if (image.getWidth() >= image.getHeight()) {
+                newHeight = (MAX_DIMENS * image.getHeight()) / image.getWidth();
+            }
+            else {
+                newWidth = (MAX_DIMENS * image.getWidth()) / image.getHeight();
+            }
+
+            Bitmap scaled = Bitmap.createScaledBitmap(image, newWidth, newHeight, true);
+
+            File path = new File (context.getExternalFilesDir(null), filename);
+            ExifInterface ei = null;
+            try {
+                ei = new ExifInterface(path.toString());
+            }
+            catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            int orientation = 0;
+            if (null != ei) {
+                orientation = ei.getAttributeInt(ExifInterface.TAG_ORIENTATION,
+                        ExifInterface.ORIENTATION_NORMAL);
+            }
+            Bitmap rotated = scaled;
+            switch(orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotated = rotateImage(scaled, 90);
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotated = rotateImage(scaled, 180);
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotated = rotateImage(scaled, 270);
+                    break;
+                default:
+                    break;
+            }
+
+            return rotated;
+        }
+
+        private Bitmap rotateImage(Bitmap image, int rotateDegree) {
+
+            Matrix matrix = new Matrix();
+            matrix.postRotate(rotateDegree);
+
+            return Bitmap.createBitmap(image , 0, 0, image.getWidth(),
+                    image.getHeight(), matrix, true);
         }
     }
 

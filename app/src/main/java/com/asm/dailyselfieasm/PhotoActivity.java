@@ -4,10 +4,14 @@ package com.asm.dailyselfieasm;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.File;
 
 public class PhotoActivity extends Activity implements SetImageCallback{
     private static final String TAG = "DailySelfieAsm";

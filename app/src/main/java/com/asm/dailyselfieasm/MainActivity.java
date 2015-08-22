@@ -276,13 +276,9 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PHOTO_REQUEST) {
             if (resultCode == RESULT_OK) {
-
-                // done TODO: get full resolution pictures
-
                 Log.i(TAG, "received the camera intent back");
 
-                // TODO: rotate the photos correctly
-                //
+                // done TODO: get full resolution pictures
 
                 File oldFile = tempPhotoFile;
                 String filename = oldFile.getName();
