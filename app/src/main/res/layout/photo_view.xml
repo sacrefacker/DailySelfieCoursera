@@ -36,7 +36,7 @@
             android:textStyle="bold"
             android:textSize="@dimen/abc_text_size_large_material"
             android:gravity="center"
-            android:singleLine="true"
+            android:singleLine="false"
             android:ellipsize="end"
             />
 
