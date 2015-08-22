@@ -66,7 +66,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         View footerView = getLayoutInflater().inflate(R.layout.footer_view, null, false);
 
-        // TODO: swipe to remove entry and cancel button
+        // TODO: checkbox and a button on Action Bar to remove photos
         //
 
         footerView.setOnClickListener(new View.OnClickListener() {
