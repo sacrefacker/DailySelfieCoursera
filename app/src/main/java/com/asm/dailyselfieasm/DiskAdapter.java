@@ -232,8 +232,7 @@ public class DiskAdapter {
         }
     }
 
-    // TODO: separate loading and normalization
-    //
+    // would be good to separate loading and normalization
 
     private class LoadImageThread extends Thread {
         SetImageCallback parent;
