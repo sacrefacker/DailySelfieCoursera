@@ -5,17 +5,20 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 
 public class DiskAdapter {
-    // Maybe just make three separate thread classes ?
 
     private static final String TAG = "DailySelfieAsm";
     private static final int DELAY = 400;
@@ -55,6 +58,16 @@ public class DiskAdapter {
         }
     }
 
+    public File createImageFile() throws IOException {
+
+        String dateStamp = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date());
+        String timeStamp = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
+        File path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+
+        return new File(path, dateStamp + "_" + timeStamp);
+    }
+
     // done TODO: async threading
 
     public void loadPreviews(SetImageCallback parent, ToastCallback toastParent) {
@@ -92,6 +105,16 @@ public class DiskAdapter {
 
     private void removeAllImagesBack(ToastCallback parent) {
         parent.toastCallback(R.string.all_photos_removed);
+    }
+
+    public void removeImage(String filename, ToastCallback parent) {
+        // Optimize the file search maybe ?
+
+        new RemoveImageThread(filename, parent).start();
+    }
+
+    private void removeImageBack(ToastCallback parent) {
+        parent.toastCallback(R.string.photo_deleted);
     }
 
     // done TODO: scale bitmap to prevent overusage of memory and rotate correctly
@@ -232,7 +255,8 @@ public class DiskAdapter {
         }
     }
 
-    // would be good to separate loading and normalization
+    // TODO: would be good to separate loading and normalization
+    //
 
     private class LoadImageThread extends Thread {
         SetImageCallback parent;
@@ -298,6 +322,41 @@ public class DiskAdapter {
                 for (File file : files) {
                     if (!file.delete()) {
                         Log.i(TAG, "file deletion is failed");
+                    }
+                }
+            }
+        }
+    }
+
+    private class RemoveImageThread extends Thread {
+        private String filename;
+        private ToastCallback parent;
+
+        public RemoveImageThread(String filename, ToastCallback parent) {
+            this.filename = filename;
+            this.parent = parent;
+        }
+
+        @Override
+        public void run() {
+
+            removeFile(new File(IMAGE_PATH, PREVIEW_DIR));
+            removeFile(IMAGE_PATH);
+
+            removeImageBack(parent);
+        }
+
+        private void removeFile(File directory) {
+            if (null != directory && directory.exists()) {
+                File[] files = directory.listFiles();
+                for (File file : files) {
+                    if (file.getName().equals(filename)) {
+                        if (!file.delete()) {
+                            Log.i(TAG, "file deletion is failed");
+                        }
+                        else {
+                            Log.i(TAG, "file " + file.getPath() + " is deleted");
+                        }
                     }
                 }
             }

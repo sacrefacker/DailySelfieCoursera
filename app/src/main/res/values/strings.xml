@@ -25,4 +25,7 @@
     <string name="notifications_are_off">Notifications are OFF</string>
     <string name="notification_title">Daily Selfie</string>
     <string name="notification_text">Time for a selfie!</string>
+    <string name="action_open_photo">Open photo</string>
+    <string name="action_remove_photo">Remove photo</string>
+    <string name="photo_deleted">the photo was deleted</string>
 </resources>
