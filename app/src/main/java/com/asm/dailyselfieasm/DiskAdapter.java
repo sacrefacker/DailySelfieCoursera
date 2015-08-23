@@ -7,7 +7,6 @@ import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +20,8 @@ import java.util.Date;
 public class DiskAdapter {
 
     private static final String TAG = "DailySelfieAsm";
-    private static final int DELAY = 400;
+    private static final int SHORT_DELAY = 200;
+    private static final int LONG_DELAY = 2000;
     public static final int MAX_DIMENS = 1920;
     public static final String PREVIEW_DIR = "previews";
 
@@ -108,7 +108,8 @@ public class DiskAdapter {
     }
 
     public void removeImage(String filename, ToastCallback parent) {
-        // Optimize the file search maybe ?
+
+        // TODO: Optimize the file search maybe ?
 
         new RemoveImageThread(filename, parent).start();
     }
@@ -173,7 +174,7 @@ public class DiskAdapter {
                 image.getHeight(), matrix, true);
     }
 
-    // Maybe implement Runnables ?
+    // Implement Runnables instead of extend Threads ?
 
     private class loadPreviews extends Thread  implements SetImageCallback{
         private SetImageCallback parent;
@@ -234,7 +235,7 @@ public class DiskAdapter {
 
         @Override
         public void run() {
-            simulateDelay(DELAY);
+            simulateDelay(LONG_DELAY);
 
             // done TODO: make the app save data
 
@@ -255,7 +256,7 @@ public class DiskAdapter {
         }
     }
 
-    // Would be good to separate loading and normalization maybe ?
+    // TODO: Would be good to separate loading and normalization maybe ?
 
     private class LoadImageThread extends Thread {
         SetImageCallback parent;
@@ -278,7 +279,7 @@ public class DiskAdapter {
         @Override
         public void run() {
 
-            simulateDelay(DELAY);
+            simulateDelay(SHORT_DELAY);
             try {
                 File file = new File(path, filename);
                 Log.i(TAG, "trying to load " + file.getPath());

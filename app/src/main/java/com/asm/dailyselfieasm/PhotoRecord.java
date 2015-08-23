@@ -13,7 +13,6 @@ import android.util.Log;
 public class PhotoRecord {
     private static final String TAG = "DailySelfieAsm";
     public static final int PREVIEW_DIMENS = 360;
-    public static final int ROUNDED_PIXELS = 50;
 
     private String date;
     private Bitmap preview;
@@ -58,7 +57,8 @@ public class PhotoRecord {
         }
 
         // done TODO: make actual previews
-        // make the dimensions sync with xml view ?
+
+        // TODO: make the dimensions sync with xml view and screen resolution?
 
         Bitmap preview;
 
@@ -101,12 +101,11 @@ public class PhotoRecord {
         final Paint paint = new Paint();
         final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
         final RectF rectF = new RectF(rect);
-        final float roundPx = pixels;
 
         paint.setAntiAlias(true);
         canvas.drawARGB(0, 0, 0, 0);
         paint.setColor(color);
-        canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+        canvas.drawRoundRect(rectF, pixels, pixels, paint);
 
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         canvas.drawBitmap(bitmap, rect, rect, paint);
