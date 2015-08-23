@@ -41,7 +41,7 @@ public class PhotoRecord {
 
     @Override
     public String toString() {
-        return "Date:" + date;
+        return "File: " + date;
     }
 
     public static Bitmap makePreview(Bitmap photo) {

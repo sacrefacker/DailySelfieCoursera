@@ -1,6 +1,5 @@
 package com.asm.dailyselfieasm;
 
-import android.app.ActionBar;
 import android.app.AlarmManager;
 import android.app.ListActivity;
 import android.app.PendingIntent;
@@ -11,21 +10,21 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.app.AlertDialog;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.util.Date;
 
 
 public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
@@ -41,7 +40,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     private static File tempPhotoFile;
 
     // Alarm Section
-    private static final int ALARM_DELAY = 20000;
+    private static final int ALARM_DELAY = 30000;
     private static final int ALARM_REPEATING_DELAY = 60000;
     private AlarmManager alarmManager;
     private PendingIntent alarmIntent;
@@ -50,18 +49,21 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        ListView listView = (ListView) findViewById(android.R.id.list);
 
         preferences = getPreferences(MODE_PRIVATE);
 
         DiskAdapter.setSaveFolder(getApplicationContext());
 
-        // TODO: checkbox and a button on Action Bar to remove photos
+        // TODO: context menu for an entry deletion
         //
 
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);
 
         DiskAdapter.getInstance().loadPreviews(this, this);
+
+        registerForContextMenu(listView);
 
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmIntent = AlarmHandler.getAlarmIntent(getApplicationContext());
@@ -102,21 +104,41 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         // done TODO: open the photo when clicking on an item in the list view
 
-        Intent showPhotoIntent = new Intent();
-        showPhotoIntent.setClass(getApplicationContext(), com.asm.dailyselfieasm.
-                PhotoActivity.class);
-        String filename = ((PhotoRecord)mAdapter.getItem(position)).getDate();
-        showPhotoIntent.putExtra(EXTRA_BITMAP, filename);
-        startActivity(showPhotoIntent);
+        openPhoto(((PhotoRecord) mAdapter.getItem(position)).getDate());
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View view,
+                                    ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, view, menuInfo);
+        if (view.getId() == android.R.id.list) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            menu.setHeaderTitle((mAdapter.getItem(info.position)).toString());
+        }
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.context_menu, menu);
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)item.getMenuInfo();
+        switch(item.getItemId()){
+            case R.id.action_open_photo:
+                openPhoto(((PhotoRecord)(mAdapter.getItem(info.position))).getDate());
+                return true;
+            case R.id.action_remove_photo:
+                deletePhoto(info.position);
+                return true;
+            default:
+                return super.onContextItemSelected(item);
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
-        // TODO: make the action bar appear on the top
-        //
+        // done TODO: make the action bar appear on the top
 
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -150,6 +172,50 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PHOTO_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Log.i(TAG, "received the camera intent back");
+
+                // done TODO: get full resolution pictures
+
+                File oldFile = tempPhotoFile;
+                String filename = oldFile.getName();
+                File file = new File(getApplicationContext().getExternalFilesDir(null), filename);
+                Log.i(TAG, "trying to move the photo...");
+                if (oldFile.renameTo(file)) {
+                    Log.i(TAG, "the photo has been moved to " + file.getPath());
+                    tempPhotoFile = null;
+                    DiskAdapter.getInstance().loadImage(this, filename, false);
+                }
+            }
+            else if (resultCode == RESULT_CANCELED) {
+                showToast(R.string.photo_not_taken);
+            }
+            else {
+                showToast(R.string.photo_failed);
+            }
+        }
+    }
+
+    private void openPhoto(String filename) {
+
+        Intent showPhotoIntent = new Intent();
+        showPhotoIntent.setClass(getApplicationContext(), com.asm.dailyselfieasm.
+                PhotoActivity.class);
+        showPhotoIntent.putExtra(EXTRA_BITMAP, filename);
+        startActivity(showPhotoIntent);
+
+    }
+
+    // Disk operations through photo adapter maybe ?
+    private void deletePhoto(int position) {
+        DiskAdapter.getInstance()
+                .removeImage(((PhotoRecord)mAdapter.getItem(position)).getDate(), this);
+        mAdapter.remove(position);
     }
 
     private void showNotificationsStatus() {
@@ -194,68 +260,23 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
         Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         if (takePhotoIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
+            tempPhotoFile = null;
             try {
-                photoFile = createImageFile();
+                tempPhotoFile = DiskAdapter.getInstance().createImageFile();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            if (null != photoFile) {
-                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            if (null != tempPhotoFile) {
+                takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(tempPhotoFile));
             }
 
             startActivityForResult(takePhotoIntent, PHOTO_REQUEST);
         }
     }
 
-    private File createImageFile() throws IOException {
-
-        String dateStamp = DateFormat.getDateInstance(DateFormat.SHORT).format(new Date());
-        String timeStamp = DateFormat.getTimeInstance(DateFormat.MEDIUM).format(new Date());
-        File path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
-        File image = new File(path, dateStamp + "_" + timeStamp);
-
-        tempPhotoFile = image;
-
-        return image;
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PHOTO_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Log.i(TAG, "received the camera intent back");
-
-                // done TODO: get full resolution pictures
-
-                File oldFile = tempPhotoFile;
-                String filename = oldFile.getName();
-                File file = new File(getApplicationContext().getExternalFilesDir(null), filename);
-                Log.i(TAG, "trying to move the photo...");
-                if (oldFile.renameTo(file)) {
-                    Log.i(TAG, "the photo has been moved to " + file.getPath());
-                    tempPhotoFile = null;
-                    DiskAdapter.getInstance().loadImage(this, filename, false);
-                }
-            }
-            else if (resultCode == RESULT_CANCELED) {
-                showToast(R.string.photo_not_taken);
-            }
-            else {
-                showToast(R.string.photo_failed);
-            }
-        }
-    }
-
     @Override
     public void setImage(Bitmap photo, String filename) {
         runOnUiThread(new SetImage(PhotoRecord.makePreview(photo), filename));
-    }
-
-    @Override
-    public void toastCallback(int textResource) {
-        runOnUiThread(new ToastCallback(textResource));
     }
 
     private class SetImage implements Runnable {
@@ -273,6 +294,11 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
             Log.i(TAG, "added a photo from file: " + filename);
             DiskAdapter.getInstance().savePreview(filename, preview);
         }
+    }
+
+    @Override
+    public void toastCallback(int textResource) {
+        runOnUiThread(new ToastCallback(textResource));
     }
 
     private class ToastCallback implements Runnable {

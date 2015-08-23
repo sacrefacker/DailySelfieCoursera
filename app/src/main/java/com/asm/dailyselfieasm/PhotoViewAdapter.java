@@ -71,6 +71,11 @@ public class PhotoViewAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    public void remove(int position) {
+        list.remove(position);
+        notifyDataSetChanged();
+    }
+
     public void clearList() {
         list.clear();
         this.notifyDataSetChanged();
