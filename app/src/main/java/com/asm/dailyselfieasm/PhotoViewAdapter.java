@@ -35,6 +35,8 @@ public class PhotoViewAdapter extends BaseAdapter {
         return position;
     }
 
+    // done TODO: Add padding to the preview in the listview
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 

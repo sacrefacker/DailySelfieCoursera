@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -29,27 +30,33 @@ import java.io.IOException;
 
 public class MainActivity extends ListActivity implements SetImageCallback, ToastCallback {
     private static final String TAG = "DailySelfieAsm";
+
     private static final int PHOTO_REQUEST = 123;
-
-    private PhotoViewAdapter mAdapter;
-    private static boolean SET_NOTIFICATIONS = true;
     private static final String SET_NOTIFICATIONS_SHARED = "set-notifications";
-    private static SharedPreferences preferences;
-
     public static final String EXTRA_BITMAP = "ExtraBitmap";
-    private static File tempPhotoFile;
 
-    // Alarm Section
     private static final int ALARM_DELAY = 30000;
     private static final int ALARM_REPEATING_DELAY = 60000;
+
+    private static boolean SET_NOTIFICATIONS = true;
+    private static SharedPreferences preferences;
+    private PhotoViewAdapter mAdapter;
     private AlarmManager alarmManager;
     private PendingIntent alarmIntent;
+
+    // this variable doesn't recreate in onCreate so it should be saved
+    private static File tempPhotoFile;
+    private static final String TEMP_PHOTO_FILE = "tempPhotoFile";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
         ListView listView = (ListView) findViewById(android.R.id.list);
+
+        if (null != savedInstanceState) {
+            restoreInstanceState(savedInstanceState);
+        }
 
         preferences = getPreferences(MODE_PRIVATE);
 
@@ -96,6 +103,22 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         super.onPause();
     }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (null != tempPhotoFile) {
+            outState.putString(TEMP_PHOTO_FILE, tempPhotoFile.getPath());
+        }
+    }
+
+    private void restoreInstanceState(Bundle bundle) {
+        String fileString = bundle.getString(TEMP_PHOTO_FILE);
+        if (null != fileString) {
+            tempPhotoFile = new File(fileString);
+        }
+    }
+
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -210,7 +233,8 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
     }
 
-    // Disk operations through photo adapter maybe ?
+    // TODO: Disk operations through photo adapter maybe ?
+
     private void deletePhoto(int position) {
         DiskAdapter.getInstance()
                 .removeImage(((PhotoRecord)mAdapter.getItem(position)).getDate(), this);

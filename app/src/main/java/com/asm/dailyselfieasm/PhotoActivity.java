@@ -2,12 +2,10 @@ package com.asm.dailyselfieasm;
 
 
 import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -44,7 +42,7 @@ public class PhotoActivity extends Activity implements SetImageCallback {
     // done TODO: don't load image from disk each time orientation changes
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(IMAGE_BUNDLE, retainImage);
     }
