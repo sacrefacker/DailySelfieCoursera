@@ -1,13 +1,12 @@
 <resources>
-    <string name="app_name">DailySelfieAsm</string>
+    <string name="app_name">Daily Selfie ASM</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_take_photo">Take photo</string>
-    <string name="footer_text">Take photo</string>
     <string name="photo_description">This is the photo</string>
     <string name="action_clear_list">Clear list</string>
     <string name="dialog_title">Remove all photos</string>
-    <string name="dialog_message">Are you absolutely one hundred percent sure you want to remove all photos?</string>
+    <string name="dialog_message">Are you absolutely one hundred percent sure
+        you want to remove all photos?</string>
     <string name="done_loading_files">Done loading files</string>
     <string name="photo_not_taken">You didn\'t take a photo</string>
     <string name="photo_failed">Photo capture failed</string>
@@ -17,7 +16,6 @@
     <string name="remove_cancel">You canceled the photo removal</string>
     <string name="saved_to">Saved to</string>
     <string name="cannot_load">Cannot load</string>
-    <string name="date">date:</string>
     <string name="please_wait">Wait for it..</string>
     <string name="all_photos_loaded">All photos have been loaded from memory</string>
     <string name="action_notification_switch">Notifications on/off</string>
@@ -27,5 +25,5 @@
     <string name="notification_text">Time for a selfie!</string>
     <string name="action_open_photo">Open photo</string>
     <string name="action_remove_photo">Remove photo</string>
-    <string name="photo_deleted">the photo was deleted</string>
+    <string name="photo_deleted">The photo was deleted</string>
 </resources>

@@ -55,8 +55,7 @@ public class MainActivity extends ListActivity implements SetImageCallback, Toas
 
         DiskAdapter.setSaveFolder(getApplicationContext());
 
-        // TODO: context menu for an entry deletion
-        //
+        // done TODO: context menu for an entry deletion
 
         mAdapter = new PhotoViewAdapter(getApplicationContext());
         setListAdapter(mAdapter);

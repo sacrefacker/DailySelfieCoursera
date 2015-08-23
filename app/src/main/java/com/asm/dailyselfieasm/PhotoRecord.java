@@ -1,12 +1,19 @@
 package com.asm.dailyselfieasm;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.Log;
 
 
 public class PhotoRecord {
     private static final String TAG = "DailySelfieAsm";
     public static final int PREVIEW_DIMENS = 360;
+    public static final int ROUNDED_PIXELS = 50;
 
     private String date;
     private Bitmap preview;
@@ -46,10 +53,14 @@ public class PhotoRecord {
 
     public static Bitmap makePreview(Bitmap photo) {
 
+        if (photo.getHeight() == PREVIEW_DIMENS) {
+            return photo;
+        }
+
         // done TODO: make actual previews
         // make the dimensions sync with xml view ?
 
-        Bitmap preview = null;
+        Bitmap preview;
 
         if (photo.getWidth() >= photo.getHeight()){
             preview = Bitmap.createBitmap(
@@ -74,11 +85,33 @@ public class PhotoRecord {
         Log.i(TAG, "a preview with dimensions " + scaled.getWidth() + " by "
                 + scaled.getHeight() + " was created");
 
-        // TODO: make the previews round
-        //
+        return getRoundedCornerBitmap(scaled, PREVIEW_DIMENS/2);
 
-        return scaled;
+    }
 
+    public static Bitmap getRoundedCornerBitmap(Bitmap bitmap, int pixels) {
+
+        // done TODO: make the previews round
+
+        Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap
+                .getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(output);
+
+        final int color = 0xff424242;
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
+        final float roundPx = pixels;
+
+        paint.setAntiAlias(true);
+        canvas.drawARGB(0, 0, 0, 0);
+        paint.setColor(color);
+        canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
+
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
+
+        return output;
     }
 
 }
